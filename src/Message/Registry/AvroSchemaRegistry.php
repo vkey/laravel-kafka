@@ -11,6 +11,10 @@ use Junges\Kafka\Exceptions\SchemaRegistryException;
 class AvroSchemaRegistry implements AvroSchemaRegistryContract
 {
     /**
+     * @var Registry
+     */
+    private Registry $registry;
+    /**
      * @var array<string, AvroSchemaRegistry[]>
      */
     private $schemaMapping = [
@@ -22,8 +26,9 @@ class AvroSchemaRegistry implements AvroSchemaRegistryContract
      * AvroSchemaRegistry constructor.
      * @param Registry $registry
      */
-    public function __construct(private Registry $registry)
+    public function __construct(Registry $registry)
     {
+        $this->registry = $registry;
     }
 
     /**

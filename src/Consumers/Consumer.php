@@ -27,6 +27,10 @@ use Throwable;
 
 class Consumer implements CanConsumeMessages
 {
+    /**
+     * @readonly
+     */
+    private Config $config;
     private const IGNORABLE_CONSUMER_ERRORS = [
         RD_KAFKA_RESP_ERR__PARTITION_EOF,
         RD_KAFKA_RESP_ERR__TRANSPORT,
@@ -60,8 +64,9 @@ class Consumer implements CanConsumeMessages
     protected int $lastRestart = 0;
     protected Timer $restartTimer;
 
-    public function __construct(private readonly Config $config, MessageDeserializer $deserializer, CommitterFactory $committerFactory = null)
+    public function __construct(Config $config, MessageDeserializer $deserializer, CommitterFactory $committerFactory = null)
     {
+        $this->config = $config;
         $this->logger = app(Logger::class);
         $this->messageCounter = new MessageCounter($config->getMaxMessages());
         $this->retryable = new Retryable(new NativeSleeper(), 6, self::TIMEOUT_ERRORS);
@@ -107,7 +112,7 @@ class Consumer implements CanConsumeMessages
 
         if ($this->shouldRunStopConsumingCallback()) {
             $callback = $this->whenStopConsuming;
-            $callback(...)();
+            \Closure::fromCallable($callback)();
         }
     }
 
@@ -231,11 +236,15 @@ class Consumer implements CanConsumeMessages
             $batchConfig->getBatchRepository()->reset();
         };
 
-        match (true) {
-            $batchConfig->getBatchRepository()->getBatchSize() >= $batchConfig->getBatchSizeLimit(),
-            $batchConfig->getTimer()->isTimedOut() && $batchConfig->getBatchRepository()->getBatchSize() > 0 => $executeBatchCallback(),
-            default => null
-        };
+        switch (true) {
+            case $batchConfig->getBatchRepository()->getBatchSize() >= $batchConfig->getBatchSizeLimit():
+            case $batchConfig->getTimer()->isTimedOut() && $batchConfig->getBatchRepository()->getBatchSize() > 0:
+                $executeBatchCallback();
+                break;
+            default:
+                null;
+                break;
+        }
 
         if ($batchConfig->getTimer()->isTimedOut()) {
             $batchConfig->getTimer()->start($batchConfig->getBatchReleaseInterval());
@@ -277,7 +286,7 @@ class Consumer implements CanConsumeMessages
      * @param Message|ConsumedMessage $message
      * @return bool
      */
-    private function handleException(Throwable $exception, Message|KafkaConsumerMessage $message): bool
+    private function handleException(Throwable $exception, $message): bool
     {
         try {
             $this->config->getConsumer()->failed(
@@ -303,11 +312,11 @@ class Consumer implements CanConsumeMessages
     {
         $topic = $this->producer->newTopic($this->config->getDlq());
         $topic->producev(
-            partition: RD_KAFKA_PARTITION_UA,
-            msgflags: 0,
-            payload: $message->payload,
-            key: $this->config->getConsumer()->producerKey($message),
-            headers: $message->headers ?? []
+            RD_KAFKA_PARTITION_UA,
+            0,
+            $message->payload,
+            $this->config->getConsumer()->producerKey($message),
+            $message->headers ?? []
         );
 
         if (method_exists($this->producer, 'flush')) {

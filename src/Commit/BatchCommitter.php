@@ -8,13 +8,16 @@ use RdKafka\Message;
 
 class BatchCommitter implements Committer
 {
+    private Committer $committer;
+    private MessageCounter $messageCounter;
+    private int $batchSize;
     private int $commits = 0;
 
-    public function __construct(
-        private Committer $committer,
-        private MessageCounter $messageCounter,
-        private int $batchSize
-    ) {
+    public function __construct(Committer $committer, MessageCounter $messageCounter, int $batchSize)
+    {
+        $this->committer = $committer;
+        $this->messageCounter = $messageCounter;
+        $this->batchSize = $batchSize;
     }
 
     public function commitMessage(Message $message, bool $success): void

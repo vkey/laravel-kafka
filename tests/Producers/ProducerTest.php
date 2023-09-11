@@ -17,7 +17,7 @@ class ProducerTest extends LaravelKafkaTestCase
         $payload = ['key' => 'value'];
 
         $message = new Message(
-            body: $payload,
+            null, -1, [], $payload,
         );
         $producer->produce($message);
         $producer->produce($message);

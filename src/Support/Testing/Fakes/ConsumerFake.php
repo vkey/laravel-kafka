@@ -14,15 +14,29 @@ use RdKafka\Message;
 
 class ConsumerFake implements CanConsumeMessages
 {
+    /**
+     * @readonly
+     */
+    private Config $config;
+    /**
+     * @readonly
+     */
+    private array $messages = [];
+    private bool $stopRequested = false;
+    private ?Closure $whenStopConsuming = null;
     private MessageCounter $messageCounter;
     private HandlesBatchConfiguration $batchConfig;
 
     public function __construct(
-        private readonly Config $config,
-        private readonly array $messages = [],
-        private bool $stopRequested = false,
-        private ?Closure $whenStopConsuming = null
+        Config $config,
+        array $messages = [],
+        bool $stopRequested = false,
+        ?Closure $whenStopConsuming = null
     ) {
+        $this->config = $config;
+        $this->messages = $messages;
+        $this->stopRequested = $stopRequested;
+        $this->whenStopConsuming = $whenStopConsuming;
         $this->messageCounter = new MessageCounter($config->getMaxMessages());
         $this->batchConfig = $this->config->getBatchConfig();
     }
@@ -42,7 +56,7 @@ class ConsumerFake implements CanConsumeMessages
 
         if ($this->shouldRunStopConsumingCallback()) {
             $callback = $this->whenStopConsuming;
-            $callback(...)();
+            \Closure::fromCallable($callback)();
         }
     }
 

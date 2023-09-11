@@ -20,15 +20,12 @@ class Options
     private ?string $saslMechanisms;
     private array $config;
 
-    #[Pure]
     public function __construct(array $options, array $config)
     {
         $options['topics'] = explode(",", $options['topics']);
-
         foreach ($options as $option => $value) {
             $this->{$option} = $value;
         }
-
         $this->config = $config;
         $this->saslPassword = $config['sasl']['password'];
         $this->saslUsername = $config['sasl']['username'];
@@ -70,18 +67,16 @@ class Options
         return $this->maxMessages >= 1 ? $this->maxMessages : -1;
     }
 
-    #[Pure]
     public function getSasl(): ?Sasl
     {
         if (is_null($this->saslMechanisms) || is_null($this->saslPassword) || is_null($this->saslUsername)) {
             return null;
         }
-
         return new Sasl(
-            username: $this->saslUsername,
-            password: $this->saslPassword,
-            mechanisms: $this->saslMechanisms,
-            securityProtocol: $this->securityProtocol
+            $this->saslUsername,
+            $this->saslPassword,
+            $this->saslMechanisms,
+            $this->securityProtocol
         );
     }
 

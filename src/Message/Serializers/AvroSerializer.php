@@ -12,10 +12,12 @@ use Junges\Kafka\Exceptions\Serializers\AvroSerializerException;
 
 class AvroSerializer implements AvroMessageSerializer
 {
-    public function __construct(
-        private AvroSchemaRegistry $registry,
-        private RecordSerializer   $recordSerializer
-    ) {
+    private AvroSchemaRegistry $registry;
+    private RecordSerializer $recordSerializer;
+    public function __construct(AvroSchemaRegistry $registry, RecordSerializer   $recordSerializer)
+    {
+        $this->registry = $registry;
+        $this->recordSerializer = $recordSerializer;
     }
 
     public function getRegistry(): AvroSchemaRegistry

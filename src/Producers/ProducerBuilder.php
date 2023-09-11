@@ -11,6 +11,7 @@ use Junges\Kafka\Contracts\MessageSerializer;
 
 class ProducerBuilder implements CanProduceMessages
 {
+    private string $topic;
     use InteractsWithConfigCallbacks;
 
     private array $options = [];
@@ -19,10 +20,9 @@ class ProducerBuilder implements CanProduceMessages
     private ?Sasl $saslConfig = null;
     private string $broker;
 
-    public function __construct(
-        private string $topic,
-        ?string $broker = null,
-    ) {
+    public function __construct(string $topic, ?string $broker = null)
+    {
+        $this->topic = $topic;
         /** @var KafkaProducerMessage $message */
         $message = app(KafkaProducerMessage::class);
         $this->message = $message->create($topic);
@@ -39,8 +39,8 @@ class ProducerBuilder implements CanProduceMessages
     public static function create(string $topic, string $broker = null): self
     {
         return new ProducerBuilder(
-            topic: $topic,
-            broker: $broker ?? config('kafka.brokers')
+            $topic,
+            $broker ?? config('kafka.brokers')
         );
     }
 
@@ -51,7 +51,7 @@ class ProducerBuilder implements CanProduceMessages
      * @param  mixed  $option
      * @return $this
      */
-    public function withConfigOption(string $name, mixed $option): self
+    public function withConfigOption(string $name, $option): self
     {
         $this->options[$name] = $option;
 
@@ -106,7 +106,7 @@ class ProducerBuilder implements CanProduceMessages
      * @param mixed $message
      * @return $this
      */
-    public function withBodyKey(string $key, mixed $message): self
+    public function withBodyKey(string $key, $message): self
     {
         $this->message->withBodyKey($key, $message);
 
@@ -223,12 +223,22 @@ class ProducerBuilder implements CanProduceMessages
     private function build(): Producer
     {
         $conf = new Config(
-            broker: $this->broker,
-            topics: [$this->getTopic()],
-            securityProtocol: $this->saslConfig?->getSecurityProtocol(),
-            sasl: $this->saslConfig,
-            customOptions: $this->options,
-            callbacks: $this->callbacks,
+            $this->broker,
+            [$this->getTopic()],
+            ($nullsafeVariable1 = $this->saslConfig) ? $nullsafeVariable1->getSecurityProtocol() : null,
+            null,
+            null,
+            null,
+            $this->saslConfig,
+            null,
+            -1,
+            6,
+            true,
+            $this->options,
+            null,
+            false,
+            1000,
+            $this->callbacks,
         );
 
         return app(Producer::class, [

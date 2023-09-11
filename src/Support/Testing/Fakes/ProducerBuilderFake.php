@@ -14,6 +14,8 @@ use Junges\Kafka\Producers\MessageBatch;
 
 class ProducerBuilderFake implements CanProduceMessages
 {
+    private string $topic;
+    private ?string $broker = null;
     use InteractsWithConfigCallbacks;
 
     private array $options = [];
@@ -22,18 +24,25 @@ class ProducerBuilderFake implements CanProduceMessages
     private ?Sasl $saslConfig = null;
     private ?Closure $producerCallback = null;
 
-    public function __construct(
-        private string $topic,
-        private ?string $broker = null,
-    ) {
+    public function __construct(string $topic, ?string $broker = null)
+    {
+        $this->topic = $topic;
+        $this->broker = $broker;
         $this->message = new Message($topic);
-
         $conf = new Config(
-            broker: '',
-            topics: [''],
-            customOptions: []
+            '',
+            [''],
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            -1,
+            6,
+            true,
+            []
         );
-
         $this->makeProducer($conf);
     }
 
@@ -55,7 +64,10 @@ class ProducerBuilderFake implements CanProduceMessages
         return $this;
     }
 
-    public function withConfigOption(string $name, mixed $option): self
+    /**
+     * @param mixed $option
+     */
+    public function withConfigOption(string $name, $option): self
     {
         $this->options[$name] = $option;
 
@@ -106,7 +118,7 @@ class ProducerBuilderFake implements CanProduceMessages
      * @param mixed $message
      * @return $this
      */
-    public function withBodyKey(string $key, mixed $message): self
+    public function withBodyKey(string $key, $message): self
     {
         $this->message->withBodyKey($key, $message);
 
@@ -232,11 +244,22 @@ class ProducerBuilderFake implements CanProduceMessages
     private function build(): ProducerFake
     {
         $conf = new Config(
-            broker: $this->broker ?? config('kafka.brokers'),
-            topics: [$this->getTopic()],
-            sasl: $this->saslConfig,
-            customOptions: $this->options,
-            callbacks: $this->callbacks,
+            $this->broker ?? config('kafka.brokers'),
+            [$this->getTopic()],
+            null,
+            null,
+            null,
+            null,
+            $this->saslConfig,
+            null,
+            -1,
+            6,
+            true,
+            $this->options,
+            null,
+            false,
+            1000,
+            $this->callbacks,
         );
 
         return $this->makeProducer($conf);

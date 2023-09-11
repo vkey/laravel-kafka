@@ -30,16 +30,16 @@ class KafkaConsumerCommandTest extends LaravelKafkaTestCase
         $this->mockConsumerWithMessage($message);
 
         $config = new Config(
-            broker: 'broker',
-            topics: ['test-topic'],
-            securityProtocol: 'security',
-            commit: 1,
-            groupId: 'group',
-            consumer: $fakeHandler,
-            sasl: null,
-            dlq: null,
-            maxMessages: 1,
-            maxCommitRetries: 1
+            'broker',
+            ['test-topic'],
+            'security',
+            1,
+            'group',
+            $fakeHandler,
+            null,
+            null,
+            1,
+            1
         );
 
         $consumer = new Consumer($config, new JsonDeserializer());

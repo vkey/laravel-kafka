@@ -20,7 +20,6 @@ class MessageBatch
      */
     private SplDoublyLinkedList $messages;
 
-    #[Pure]
     public function __construct()
     {
         $this->messages = new SplDoublyLinkedList();

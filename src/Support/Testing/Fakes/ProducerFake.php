@@ -10,13 +10,15 @@ use RdKafka\Conf;
 
 class ProducerFake
 {
+    private Config $config;
+    private string $topic;
     private array $messages = [];
     private ?Closure $producerCallback = null;
 
-    public function __construct(
-        private Config $config,
-        private string $topic
-    ) {
+    public function __construct(Config $config, string $topic)
+    {
+        $this->config = $config;
+        $this->topic = $topic;
     }
 
     public function setConf(array $options = []): Conf

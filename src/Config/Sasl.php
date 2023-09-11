@@ -4,12 +4,16 @@ namespace Junges\Kafka\Config;
 
 class Sasl
 {
-    public function __construct(
-        private string $username,
-        private string $password,
-        private string $mechanisms,
-        private string $securityProtocol = 'SASL_PLAINTEXT'
-    ) {
+    private string $username;
+    private string $password;
+    private string $mechanisms;
+    private string $securityProtocol = 'SASL_PLAINTEXT';
+    public function __construct(string $username, string $password, string $mechanisms, string $securityProtocol = 'SASL_PLAINTEXT')
+    {
+        $this->username = $username;
+        $this->password = $password;
+        $this->mechanisms = $mechanisms;
+        $this->securityProtocol = $securityProtocol;
     }
 
     public function getUsername(): string

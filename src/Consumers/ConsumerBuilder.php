@@ -78,9 +78,9 @@ class ConsumerBuilder implements ConsumerBuilderContract
     public static function create(string $brokers, array $topics = [], string $groupId = null): self
     {
         return new ConsumerBuilder(
-            brokers: $brokers,
-            topics: $topics,
-            groupId: $groupId
+            $brokers,
+            $topics,
+            $groupId
         );
     }
 
@@ -139,7 +139,7 @@ class ConsumerBuilder implements ConsumerBuilderContract
      */
     public function withHandler(callable $handler): self
     {
-        $this->handler = $handler(...);
+        $this->handler = \Closure::fromCallable($handler);
 
         return $this;
     }
@@ -256,8 +256,9 @@ class ConsumerBuilder implements ConsumerBuilderContract
 
     /**
      * @inheritDoc
+     * @param mixed $value
      */
-    public function withOption(string $name, mixed $value): self
+    public function withOption(string $name, $value): self
     {
         $this->options[$name] = $value;
 
@@ -310,21 +311,22 @@ class ConsumerBuilder implements ConsumerBuilderContract
     public function build(): CanConsumeMessages
     {
         $config = new Config(
-            broker: $this->brokers,
-            topics: $this->topics,
-            securityProtocol: $this->getSecurityProtocol(),
-            commit: $this->commit,
-            groupId: $this->groupId,
-            consumer: new CallableConsumer($this->handler, $this->middlewares),
-            sasl: $this->saslConfig,
-            dlq: $this->dlq,
-            maxMessages: $this->maxMessages,
-            maxCommitRetries: $this->maxCommitRetries,
-            autoCommit: $this->autoCommit,
-            customOptions: $this->options,
-            batchConfig: $this->getBatchConfig(),
-            stopAfterLastMessage: $this->stopAfterLastMessage,
-            callbacks: $this->callbacks,
+            $this->brokers,
+            $this->topics,
+            $this->getSecurityProtocol(),
+            $this->commit,
+            $this->groupId,
+            new CallableConsumer($this->handler, $this->middlewares),
+            $this->saslConfig,
+            $this->dlq,
+            $this->maxMessages,
+            $this->maxCommitRetries,
+            $this->autoCommit,
+            $this->options,
+            $this->getBatchConfig(),
+            $this->stopAfterLastMessage,
+            1000,
+            $this->callbacks,
         );
 
         return new Consumer($config, $this->deserializer, $this->committerFactory);
@@ -336,7 +338,7 @@ class ConsumerBuilder implements ConsumerBuilderContract
      * @param mixed $topic
      * @return void
      */
-    protected function validateTopic(mixed $topic): void
+    protected function validateTopic($topic): void
     {
         if (! is_string($topic)) {
             $type = ucfirst(gettype($topic));
@@ -370,12 +372,12 @@ class ConsumerBuilder implements ConsumerBuilderContract
         }
 
         return new BatchConfig(
-            batchConsumer: new CallableBatchConsumer($this->handler),
-            timer: new Timer(),
-            batchRepository: app(config('kafka.batch_repository')),
-            batchingEnabled: $this->batchingEnabled,
-            batchSizeLimit: $this->batchSizeLimit,
-            batchReleaseInterval: $this->batchReleaseInterval
+            new CallableBatchConsumer($this->handler),
+            new Timer(),
+            app(config('kafka.batch_repository')),
+            $this->batchingEnabled,
+            $this->batchSizeLimit,
+            $this->batchReleaseInterval
         );
     }
 }

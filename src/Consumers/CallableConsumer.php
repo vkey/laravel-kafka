@@ -13,7 +13,7 @@ class CallableConsumer extends Consumer
 
     public function __construct(callable $handler, array $middlewares)
     {
-        $this->handler = $handler(...);
+        $this->handler = \Closure::fromCallable($handler);
 
         $this->middlewares = array_map([$this, 'wrapMiddleware'], $middlewares);
         $this->middlewares[] = $this->wrapMiddleware(

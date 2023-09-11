@@ -44,9 +44,9 @@ class KafkaFake implements CanPublishMessagesToKafka
     public function createConsumer(array $topics = [], string $groupId = null, string $brokers = null): ConsumerBuilderFake
     {
         return ConsumerBuilderFake::create(
-            brokers: $brokers ?? config('kafka.brokers'),
-            topics: $topics,
-            groupId: $groupId ?? config('kafka.consumer_group_id')
+            $brokers ?? config('kafka.brokers'),
+            $topics,
+            $groupId ?? config('kafka.consumer_group_id')
         )->setMessages(
             $this->messagesToConsume
         );
@@ -58,7 +58,7 @@ class KafkaFake implements CanPublishMessagesToKafka
      * @param \Junges\Kafka\Contracts\KafkaConsumerMessage|Junges\Kafka\Contracts\KafkaConsumerMessage[] $messages
      * @return void
      */
-    public function shouldReceiveMessages(KafkaConsumerMessage|array $messages): void
+    public function shouldReceiveMessages($messages): void
     {
         if (! is_array($messages)) {
             $messages = [$messages];
@@ -155,8 +155,8 @@ class KafkaFake implements CanPublishMessagesToKafka
     private function makeProducerBuilderFake(string $topic = '', ?string $broker = null): ProducerBuilderFake
     {
         return (new ProducerBuilderFake(
-            topic: $topic,
-            broker: $broker
+            $topic,
+            $broker
         )
         )->withProducerCallback(fn (Message $message) => $this->publishedMessages[] = $message);
     }
@@ -195,7 +195,6 @@ class KafkaFake implements CanPublishMessagesToKafka
      *
      * @return bool
      */
-    #[Pure]
     private function hasPublished(): bool
     {
         return ! empty($this->getPublishedMessages());
@@ -206,7 +205,6 @@ class KafkaFake implements CanPublishMessagesToKafka
      *
      * @return array
      */
-    #[Pure]
     private function getPublishedMessages(): array
     {
         return $this->publishedMessages;
